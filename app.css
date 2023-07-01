@@ -1,0 +1,51 @@
+body {
+    font-family: sans-serif, Courier, monospace;
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+h1 {
+    text-align: center;
+
+}
+
+.score-board {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+
+.game-board {
+    background-color: #fefae0;
+    width: fit-content;
+    padding: 25px;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: auto auto auto auto auto auto auto auto auto auto;
+    column-gap: 5px;
+    margin-top: 20px;
+}
+
+.grid-row {
+    border: 1px solid #d4a373;
+    padding: 10px;
+    margin-top: 5px;
+    background-color: #d4a373;
+}
+
+.is-right-click {
+    border: 1px solid #d4c573;
+    background-color: #d4c573;
+    background-image: url(flag-solid2.svg)
+}
+
+i {
+    position: absolute;
+}
