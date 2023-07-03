@@ -1,5 +1,6 @@
 body {
     font-family: sans-serif, Courier, monospace;
+    color: #d4a373;
 }
 
 .container {
@@ -19,6 +20,21 @@ h1 {
     align-items: center;
 }
 
+button {
+    background-color: #ebe6ca;
+    border: #d4a373 solid;
+    color: #c4874a;
+    border-radius: 5px;
+    padding: 5px;
+}
+
+.game-info {
+    display: flex;
+    justify-content: center;
+    height: 40px;
+}
+
+
 
 .game-board {
     background-color: #fefae0;
@@ -26,26 +42,46 @@ h1 {
     padding: 25px;
 }
 
+
 .grid-container {
     display: grid;
-    grid-template-columns: auto auto auto auto auto auto auto auto auto auto;
+    grid-template-columns: repeat(10, 1fr);
     column-gap: 5px;
     margin-top: 20px;
 }
 
 .grid-row {
     border: 1px solid #d4a373;
-    padding: 10px;
+    height: 25px;
+    width: 25px;
     margin-top: 5px;
     background-color: #d4a373;
+
 }
 
 .is-right-click {
-    border: 1px solid #d4c573;
-    background-color: #d4c573;
-    background-image: url(flag-solid2.svg)
+    background-image: url(flag-solid.svg);
+    background-repeat: no-repeat;
 }
 
 i {
     position: absolute;
+}
+
+.number-hint {
+    background-color: #ebe6ca;
+    text-align: center;
+}
+
+.empty-cell {
+    background-color: #ebe6ca;
+}
+
+.game-over {
+    background-image: url(bomb-solid.svg);
+    background-repeat: no-repeat;
+}
+
+.xmark {
+    filter: invert(21%) sepia(83%) saturate(6911%) hue-rotate(357deg) brightness(106%) contrast(117%);
 }
