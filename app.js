@@ -5,6 +5,10 @@ let grid;
 let visitedGrid;
 let randomMine;
 let numberOfMineNotFound = numberOfMine;
+// Initialize timer to control the Timer
+let timerInterval;
+let isGameOver = false;
+let isGameStart = false;
 
 // Get references 
 const startButton = document.getElementById("startButton");
@@ -16,6 +20,19 @@ const mineLeft = document.getElementById('MineLeft');
 createBoard(numberOfRow, numberOfColumn);
 generateMine(numberOfMine, numberOfRow, numberOfColumn);
 resetVisitedGrid(numberOfRow, numberOfColumn);
+
+function startGame() {
+    if (!isGameStart) {
+        resetTimer();
+        isGameStart = true;
+        timerInterval = setInterval(startTimer, 1000);
+    }
+}
+
+function stopGame() {
+    isGameStart = false;
+    clearInterval(timerInterval);
+}
 
 // Create the game board
 function createBoard(numberOfRow, numberOfColumn) {
@@ -48,22 +65,21 @@ function createBoard(numberOfRow, numberOfColumn) {
     }
 
     startButton.addEventListener("click", () => {
+        stopGame();
+        isGameOver = false;
         resetTimer();
         createBoard(numberOfRow, numberOfColumn);
         generateMine(numberOfMine, numberOfRow, numberOfColumn);
         resetVisitedGrid(numberOfRow, numberOfColumn);
         gameInfo.textContent = '';
         mineLeft.innerHTML = handleStringFormat(numberOfMine);
-
+        numberOfMineNotFound = numberOfMine;
     });
-
 }
 
 
 // Create a global variable count initialize to 0
 let count = 0;
-// Initialize timer to control the Timer
-let timerInterval;
 
 function startTimer() {
     // Increment count by 1
@@ -79,12 +95,14 @@ function stopTimer() {
     return totalTime;
 }
 
+
 function resetTimer() {
     // Set count and countString to default value
     count = 0;
     const countString = handleStringFormat(count);
     // Update the innierHTML
     second.innerHTML = countString;
+    timerInterval = null;
 }
 
 // Convert number to string with '000' format
@@ -102,18 +120,9 @@ function handleStringFormat(num) {
     return formatString;
 }
 
-// Generate unique coordinates that is not in the array
-function generateUniqueNumberArray(arr, arrLength, maxNumber) {
-    while (arr.length < arrLength) {
-        let randomNumber = Math.floor(Math.random() * maxNumber)
-        //if (arr.indexOf(randomNumber) === -1) {
-        arr.push(randomNumber);
-        //}
-    }
-}
 
 // Generate unique coordinates that is not in the array
-function generateRamdomMine(numberOfMine, numberOfRow, numberOfColumn) {
+function generateRandomMine(numberOfMine, numberOfRow, numberOfColumn) {
     randomMine = [];
     while (randomMine.length < numberOfMine) {
         let randomRow = Math.floor(Math.random() * numberOfRow);
@@ -135,7 +144,7 @@ function generateRamdomMine(numberOfMine, numberOfRow, numberOfColumn) {
 function generateMine(numberOfMine, numberOfRow, numberOfColumn) {
 
     // Generate random mines
-    generateRamdomMine(numberOfMine, numberOfRow, numberOfColumn);
+    generateRandomMine(numberOfMine, numberOfRow, numberOfColumn);
 
     // Create two-dimensional array
     //[[E, E, E, E...E],
@@ -157,7 +166,7 @@ function generateMine(numberOfMine, numberOfRow, numberOfColumn) {
     for (let i = 0; i < randomMine.length; i++) {
         grid[randomMine[i][0]][randomMine[i][1]] = 'M';
     }
-    console.log(grid);
+
 }
 
 function resetVisitedGrid(numberOfRow, numberOfColumn) {
@@ -169,7 +178,7 @@ function resetVisitedGrid(numberOfRow, numberOfColumn) {
             visitedGrid[r][c] = false;
         }
     }
-    console.log(visitedGrid);
+
 }
 
 const numberOfvisitedCells = () => {
@@ -196,12 +205,15 @@ function HandleRightClick(event) {
     const cell = event.target;
     const cellId = cell.id;
     const cellClass = cell.className;
-    // Get the index of the row column
-    const index = cellId.split(',');
-    const r = Number(index[0]);
-    const c = Number(index[1]);
 
-    if (document.getElementById(cellId).classList.contains('number-hint') || document.getElementById(cellId).classList.contains('empty-cell')) {
+    const clickedCell = document.getElementById(cellId)
+
+    // If the cell have been visited, disabled the click
+    if (clickedCell.classList.contains('number-hint') || clickedCell.classList.contains('empty-cell')) {
+        return
+    }
+    // If the game is over, disabled all the cells
+    if (isGameOver) {
         return
     }
 
@@ -210,29 +222,27 @@ function HandleRightClick(event) {
         // update the CSS
         handleStringFormat(numberOfMineNotFound)
         mineLeft.innerHTML = handleStringFormat(numberOfMineNotFound);
-        document.getElementById(cellId).classList.add('is-right-click');
+        clickedCell.classList.add('is-right-click');
     } else {
         numberOfMineNotFound += 1;
         // update the CSS
         handleStringFormat(numberOfMineNotFound)
         mineLeft.innerHTML = handleStringFormat(numberOfMineNotFound);
-        document.getElementById(cellId).innerHTML = '';
-        document.getElementById(cellId).classList.remove('is-right-click');
+        clickedCell.innerHTML = '';
+        clickedCell.classList.remove('is-right-click');
     }
     // Check whether finish the game
     if (isGameSuccess()) {
         gameSuccess();
         return
     }
+
     mineLeft.innerHTML = handleStringFormat(numberOfMineNotFound);
 }
 
 function handleLeftClick(event) {
     event.preventDefault();
-    // Start the timer only once
-    if (!timerInterval) {
-        timerInterval = setInterval(startTimer, 1000)
-    }
+    startGame();
 
     // Get the click cell
     const cell = event.target;
@@ -245,6 +255,11 @@ function handleLeftClick(event) {
 
     // If the cell has been right clicked, disabled the left click
     if (document.getElementById(cellId).classList.contains('is-right-click')) {
+        return
+    }
+
+    // Check whether game over
+    if (isGameOver) {
         return
     }
 
@@ -261,6 +276,7 @@ function handleLeftClick(event) {
         gameSuccess();
         return
     }
+
 }
 
 function revealSafeArea(r, c) {
@@ -271,6 +287,7 @@ function revealSafeArea(r, c) {
     if (grid[r][c] === 'M') {
         return
     }
+
 
     // Calculate the number of adjacent mines and display it on the cell, marked the cell as visited
     const adjacent = [] // [[r-1, c-1], [r-1, c], [r-1, c+1],[r, c-1],[r+1, c-1], [r+1, c], [r+1, c+1]]
@@ -293,17 +310,26 @@ function revealSafeArea(r, c) {
             totalMine += 1;
         }
     }
+    let leftClickCell = document.getElementById(`${r},${c}`)
     // If there is mine around the cell, marked the cell as visited
     if (totalMine > 0) {
         grid[r][c] = totalMine.toString();
         visitedGrid[r][c] = true;
         //update the CSS of the cell
-        document.getElementById(`${r},${c}`).classList.add('number-hint');
-        document.getElementById(`${r},${c}`).textContent = totalMine;
+        // If it is right clicked but not a mine, change its class  
+        if (leftClickCell.classList.contains('is-right-click')) {
+            leftClickCell.classList.remove('is-right-click')
+        }
+        leftClickCell.classList.add('number-hint');
+        leftClickCell.textContent = totalMine;
         return
     } else {
         visitedGrid[r][c] = true;
-        document.getElementById(`${r},${c}`).classList.add('empty-cell');
+        // If it is right clicked but not a mine, change its class  
+        if (leftClickCell.classList.contains('is-right-click')) {
+            leftClickCell.classList.remove('is-right-click')
+        }
+        leftClickCell.classList.add('empty-cell');
         // Recursively explores its neighbors(up, down, left, right and diagonals) that are not visited yet
         for (let i = 0; i < adjacent.length; i++) {
             if (adjacent[i][0] >= 0 && adjacent[i][0] < numberOfRow &&
@@ -325,9 +351,12 @@ function isGameSuccess() {
         return true;
     } return false;
 }
+
 function gameover() {
     // Timer stops
     stopTimer()
+
+    isGameOver = true;
     // All the mines shows up
     for (let r = 0; r < numberOfRow; r++) {
         for (let c = 0; c < numberOfColumn; c++) {
@@ -345,6 +374,7 @@ function gameover() {
             }
 
         }
+
     }
 
 
